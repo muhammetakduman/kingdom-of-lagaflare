@@ -1,16 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Web3Provider } from '@ethersproject/providers';
-import { Contract } from '@ethersproject/contracts';
+import { useState } from 'react';
+import { BrowserProvider } from 'ethers';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { Box, Button, Grid, Typography, CircularProgress, Card, CardContent } from '@mui/material';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Box, Button, Typography } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
 import nftContractABI from './abi.json';
 import logoImage from './assets/kindomoflegaflarenobg.png';
 import bgImage from './assets/bg.png';
 import Dashboard from './Dashboard.jsx';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-// Create theme with Cinzel font
 const theme = createTheme({
   typography: {
     fontFamily: 'Cinzel, serif',
@@ -42,10 +40,10 @@ const NFTCardGame = () => {
         return;
       }
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const providerInstance = new Web3Provider(window.ethereum);
-      const signer = providerInstance.getSigner();
+      const providerInstance = new BrowserProvider(window.ethereum);
+      const signer = await providerInstance.getSigner();
       const address = await signer.getAddress();
-      
+
       setProvider(providerInstance);
       setUserAddress(address);
       navigate("/dashboard", { replace: true });
@@ -55,20 +53,20 @@ const NFTCardGame = () => {
   };
 
   const connectWalletContent = (
-    <Box sx={{ 
-      display: "flex", 
-      flexDirection: "column", 
-      justifyContent: "center", 
-      alignItems: "center", 
-      height: "100vh" 
+    <Box sx={{
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100vh"
     }}>
       <img src={logoImage} alt="Logo" style={{ marginBottom: "20px", width: "400px" }} />
       <Typography variant="h6" gutterBottom style={{ color: "#d97706" }}>
-      Connect your wallet to embark on your adventure
-    </Typography>
+        Connect your wallet to embark on your adventure
+      </Typography>
 
-      <Button 
-        variant="contained" 
+      <Button
+        variant="contained"
         onClick={handleConnectWallet}
         sx={{
           mt: 2,
@@ -97,7 +95,7 @@ const NFTCardGame = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ 
+      <Box sx={{
         padding: 0,
         minHeight: '100vh',
         position: 'relative',
@@ -119,14 +117,14 @@ const NFTCardGame = () => {
         <Routes>
           <Route path="/" element={!provider ? connectWalletContent : <Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={
-            !provider ? <Navigate to="/" replace /> : 
-            <Dashboard 
-              userAddress={userAddress} 
-              provider={provider}
-              logoImage={logoImage} 
-              contractAddress={"0xd15927078676431351AE2f89e4639cD134B08104"}
-              contractABI={nftContractABI}
-            />
+            !provider ? <Navigate to="/" replace /> :
+              <Dashboard
+                userAddress={userAddress}
+                provider={provider}
+                logoImage={logoImage}
+                contractAddress={"0xd15927078676431351AE2f89e4639cD134B08104"}
+                contractABI={nftContractABI}
+              />
           } />
         </Routes>
       </Box>

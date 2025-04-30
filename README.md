@@ -1,6 +1,6 @@
 # Kingdom of LagaFlare - ETHOXFORD 2025
 
-<div align="center">
+<div alingin="center">
   <img src="./src/assets/kindomoflegaflarenobg.png" alt="Kingdom of LagaFlare Logo" width="500"/>
 </div>
 

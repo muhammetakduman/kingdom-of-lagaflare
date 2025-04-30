@@ -74,13 +74,18 @@ const Dashboard = ({ userAddress, provider, logoImage, contractAddress, contract
 
   useEffect(() => {
     const initContract = async () => {
-      const signer = provider.getSigner();
-      const contractInstance = new ethers.Contract(contractAddress, contractABI, signer);
-      setContract(contractInstance);
-      await loadNFTs(contractInstance);
+      try {
+        const signer = await provider.getSigner();
+        const contractInstance = new ethers.Contract(contractAddress, contractABI, signer);
+        setContract(contractInstance);
+        await loadNFTs(contractInstance);
+      } catch (error) {
+        console.error("Contract init error:", error);
+      }
     };
     initContract();
   }, []);
+
 
   const loadNFTs = async (contractInstance) => {
     try {
@@ -202,10 +207,10 @@ const Dashboard = ({ userAddress, provider, logoImage, contractAddress, contract
 
       const tx = await contract.startFight(selectedCard);
       console.log("Creating fight with card:", selectedCard);
-      
+
       // Remove the fight action immediately when transaction is sent
       setFightAction(null);
-      
+
       let receipt = null;
       while (!receipt) {
         receipt = await provider.getTransactionReceipt(tx.hash);
@@ -213,7 +218,7 @@ const Dashboard = ({ userAddress, provider, logoImage, contractAddress, contract
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
-      
+
       console.log("Fight creation receipt:", receipt);
 
       const log = receipt.logs.find(log => {
@@ -228,7 +233,7 @@ const Dashboard = ({ userAddress, provider, logoImage, contractAddress, contract
       if (log) {
         const parsedLog = contract.interface.parseLog(log);
         console.log("Parsed event:", parsedLog);
-        
+
         const fightId = Number(parsedLog.args[0]);
         console.log("Fight created with ID:", fightId);
         setCreatedFightId(fightId);
@@ -250,7 +255,7 @@ const Dashboard = ({ userAddress, provider, logoImage, contractAddress, contract
       }
       const tx = await contract.joinFight(fightId, selectedCard);
       console.log("Joining fight:", fightId, "with card:", selectedCard);
-      
+
       let receipt = null;
       while (!receipt) {
         receipt = await provider.getTransactionReceipt(tx.hash);
@@ -261,11 +266,11 @@ const Dashboard = ({ userAddress, provider, logoImage, contractAddress, contract
 
       // After joining, resolve the fight
       await resolveFight(fightId);
-      
+
       setIsFightModalOpen(false);
       setFightAction(null);
       setFightId('');
-      
+
     } catch (error) {
       console.error('Error joining fight:', error);
       setError('Failed to join fight. Please try again.');
