@@ -7,7 +7,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import nftContractABI from './abi.json';
 import logoImage from './assets/kindomoflegaflarenobg.png';
 import bgImage from './assets/bg.png';
-import Dashboard from './Dashboard.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 
 const theme = createTheme({
   typography: {
