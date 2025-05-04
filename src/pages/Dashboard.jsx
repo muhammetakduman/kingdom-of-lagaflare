@@ -251,6 +251,7 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
                     variant="contained"
                     sx={buttonStyles}
                     onClick={() => {
+                        <LightningEffect />
                         setShowLightning(true);
                         setTimeout(() => setShowLightning(false), 3000); // 0.4 saniye parlasın
                         setIsFightModalOpen(true);

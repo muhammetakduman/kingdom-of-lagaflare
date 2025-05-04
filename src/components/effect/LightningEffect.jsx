@@ -15,7 +15,7 @@ const LightningEffect = () => {
                     ease: 'easeOut',
                 },
             });
-        }, 3000 + Math.random() * 2000); // rastgele yıldırım
+        },); // rastgele yıldırım
 
         return () => clearInterval(interval);
     }, [controls]);
