@@ -8,8 +8,11 @@ import FightModal from '../components/FightModal';
 import WinnerModal from '../components/WinnerModal';
 import LoserModal from '../components/LoserModal';
 import ErrorSnackbar from '../components/ErrorSnackbar';
+import LightningEffect from '../components/effect/LightningEffect';
 
 const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
+
+    const [showLightning, setShowLightning] = useState(false);
     const [selectedCard, setSelectedCard] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newCard, setNewCard] = useState(null);
@@ -143,7 +146,7 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
         }
     };
 
-    // 🛡️ FIGHT CONTRACT INTEGRATION
+    //FIGHT CONTRACT INTEGRATION
     const handleJoinFight = async () => {
         try {
             if (!fightId || !selectedCard) {
@@ -225,6 +228,7 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
 
     return (
         <>
+            {showLightning && <LightningEffect />}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 4, pt: 2 }}>
                 <Typography
                     sx={{
@@ -243,7 +247,17 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
 
             <Box display="flex" justifyContent="center" gap={2} mt={4} mb={2}>
                 <Button variant="contained" sx={buttonStyles} onClick={handleMint}>OPEN PACK</Button>
-                <Button variant="contained" sx={buttonStyles} onClick={() => setIsFightModalOpen(true)}>FIGHT!</Button>
+                <Button
+                    variant="contained"
+                    sx={buttonStyles}
+                    onClick={() => {
+                        setShowLightning(true);
+                        setTimeout(() => setShowLightning(false), 3000); // 0.4 saniye parlasın
+                        setIsFightModalOpen(true);
+                    }}
+                >
+                    FIGHT!
+                </Button>
             </Box>
 
             <Box
@@ -260,15 +274,23 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
                     boxSizing: 'border-box',
                 }}
             >
-                {nfts.map((nft, index) => (
-                    <Box key={index}>
-                        <CardDisplay
-                            nft={nft}
-                            selectedCard={selectedCard}
-                            onSelect={handleCardSelect}
-                        />
-                    </Box>
-                ))}
+                {[...nfts]
+                    .sort((a, b) => {
+                        const nameCompare = a.name.localeCompare(b.name);
+                        if (nameCompare !== 0) return nameCompare;
+                        return a.rarity - b.rarity;
+                    })
+                    .map((nft, index) => (
+                        <Box key={index}>
+                            <CardDisplay
+                                nft={nft}
+                                selectedCard={selectedCard}
+                                onSelect={handleCardSelect}
+                            />
+                        </Box>
+                    ))}
+
+
             </Box>
 
             <NewCardModal
