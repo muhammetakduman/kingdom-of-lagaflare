@@ -13,13 +13,16 @@ const FightModal = ({
     handleJoinFight,
     copyFightId
 }) => {
+    const handleClose = () => {
+        onClose();
+        setFightAction(null);
+        setFightId('');
+    };
+
     return (
         <Modal
             open={open}
-            onClose={() => {
-                onClose();
-                setFightAction(null);
-            }}
+            onClose={handleClose}
             sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -37,37 +40,44 @@ const FightModal = ({
                     width: '90%',
                 }}
             >
-
-                {/* Başlangıç Ekranı */}
-                {!fightAction && !createdFightId ? (
+                {createdFightId ? (
                     <>
-                        <Typography variant="h5" sx={{ color: '#fef3c7', mb: 3 }}>
-                            Choose Your Battle Path
+                        <Typography variant="h5" sx={{ color: '#ffd700', mb: 3 }}>
+                            Fight Created Successfully!
                         </Typography>
-                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-                            <Button
-                                onClick={() => setFightAction('create')}
-                                sx={{
-                                    backgroundColor: '#7c2d12',
-                                    color: '#fef3c7',
-                                    border: '2px solid #b45309',
-                                    '&:hover': { backgroundColor: '#92400e' },
-                                }}
-                            >
-                                Create Fight
-                            </Button>
-                            <Button
-                                onClick={() => setFightAction('join')}
-                                sx={{
-                                    backgroundColor: '#7c2d12',
-                                    color: '#fef3c7',
-                                    border: '2px solid #b45309',
-                                    '&:hover': { backgroundColor: '#92400e' },
-                                }}
-                            >
-                                Join Fight
-                            </Button>
+                        <Box
+                            sx={{
+                                backgroundColor: '#1f2937',
+                                padding: '1rem',
+                                borderRadius: '4px',
+                                border: '2px solid #ffd700',
+                                mb: 3,
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#374151' },
+                            }}
+                            onClick={copyFightId}
+                        >
+                            <Typography sx={{ color: '#fef3c7', fontSize: '32px', fontWeight: 'bold' }}>
+                                Fight ID: {createdFightId}
+                            </Typography>
+                            <Typography sx={{ color: '#9ca3af', fontSize: '14px', mt: 1 }}>
+                                Click to copy
+                            </Typography>
                         </Box>
+                        <Typography sx={{ color: '#fef3c7', mb: 3 }}>
+                            Share this Fight ID with your opponent to join the fight!
+                        </Typography>
+                        <Button
+                            onClick={handleClose}
+                            sx={{
+                                backgroundColor: '#7c2d12',
+                                color: '#fef3c7',
+                                border: '2px solid #b45309',
+                                '&:hover': { backgroundColor: '#92400e' },
+                            }}
+                        >
+                            Close
+                        </Button>
                     </>
                 ) : fightAction === 'join' ? (
                     <>
@@ -146,44 +156,33 @@ const FightModal = ({
                     </>
                 ) : (
                     <>
-                        <Typography variant="h5" sx={{ color: '#ffd700', mb: 3 }}>
-                            Fight Created Successfully!
+                        <Typography variant="h5" sx={{ color: '#fef3c7', mb: 3 }}>
+                            Choose Your Battle Path
                         </Typography>
-                        <Box
-                            sx={{
-                                backgroundColor: '#1f2937',
-                                padding: '1rem',
-                                borderRadius: '4px',
-                                border: '2px solid #ffd700',
-                                mb: 3,
-                                cursor: 'pointer',
-                                '&:hover': {
-                                    backgroundColor: '#374151',
-                                },
-                            }}
-                            onClick={copyFightId}
-                        >
-                            <Typography sx={{ color: '#fef3c7', fontSize: '32px', fontWeight: 'bold' }}>
-                                Fight ID: {createdFightId}
-                            </Typography>
-                            <Typography sx={{ color: '#9ca3af', fontSize: '14px', mt: 1 }}>
-                                Click to copy
-                            </Typography>
+                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                            <Button
+                                onClick={() => setFightAction('create')}
+                                sx={{
+                                    backgroundColor: '#7c2d12',
+                                    color: '#fef3c7',
+                                    border: '2px solid #b45309',
+                                    '&:hover': { backgroundColor: '#92400e' },
+                                }}
+                            >
+                                Create Fight
+                            </Button>
+                            <Button
+                                onClick={() => setFightAction('join')}
+                                sx={{
+                                    backgroundColor: '#7c2d12',
+                                    color: '#fef3c7',
+                                    border: '2px solid #b45309',
+                                    '&:hover': { backgroundColor: '#92400e' },
+                                }}
+                            >
+                                Join Fight
+                            </Button>
                         </Box>
-                        <Typography sx={{ color: '#fef3c7', mb: 3 }}>
-                            Share this Fight ID with your opponent to join the fight!
-                        </Typography>
-                        <Button
-                            onClick={onClose}
-                            sx={{
-                                backgroundColor: '#7c2d12',
-                                color: '#fef3c7',
-                                border: '2px solid #b45309',
-                                '&:hover': { backgroundColor: '#92400e' },
-                            }}
-                        >
-                            Close
-                        </Button>
                     </>
                 )}
             </Box>

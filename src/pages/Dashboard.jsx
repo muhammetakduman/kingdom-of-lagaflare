@@ -198,6 +198,8 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
                 } else {
                     setIsLoserModalOpen(true);
                 }
+                setCreatedFightId(null);
+
             }
         } catch (err) {
             console.error("Fight çözümleme hatası:", err);
@@ -251,11 +253,12 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
                     variant="contained"
                     sx={buttonStyles}
                     onClick={() => {
-                        <LightningEffect />
                         setShowLightning(true);
-                        setTimeout(() => setShowLightning(false), 3000); // 0.4 saniye parlasın
+                        setTimeout(() => setShowLightning(false), 3000);
                         setIsFightModalOpen(true);
+                        setFightAction(null);
                     }}
+
                 >
                     FIGHT!
                 </Button>
@@ -307,7 +310,11 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
 
             <FightModal
                 open={isFightModalOpen}
-                onClose={() => setIsFightModalOpen(false)}
+                onClose={() => {
+                    setIsFightModalOpen(false);
+                    setFightAction(null);
+                    setCreatedFightId(null);  // 🔧 bunu da ekle
+                }}
                 fightAction={fightAction}
                 setFightAction={setFightAction}
                 fightId={fightId}
