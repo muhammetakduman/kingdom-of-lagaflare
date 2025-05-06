@@ -9,8 +9,11 @@ import WinnerModal from '../components/WinnerModal';
 import LoserModal from '../components/LoserModal';
 import ErrorSnackbar from '../components/ErrorSnackbar';
 import LightningEffect from '../components/effect/LightningEffect';
+import BattleScreen from '../components/BattleScreen';
 
 const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
+    const [battleResult, setBattleResult] = useState(null);
+    const [isBattleScreenOpen, setIsBattleScreenOpen] = useState(false);
 
     const [showLightning, setShowLightning] = useState(false);
     const [selectedCard, setSelectedCard] = useState(null);
@@ -40,16 +43,16 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
                 await loadNFTs(contractInstance);
             } catch (err) {
                 console.error('Kontrat başlatma hatası:', err);
-                setError("Failed to connect to the contract.");
+                setError('Failed to connect to the contract.');
             }
         };
 
         initContract();
     }, []);
 
-    const loadNFTs = async (contract) => {
+    const loadNFTs = async (contractInstance) => {
         try {
-            const data = await contract.getMyNFTsWithData();
+            const data = await contractInstance.getMyNFTsWithData();
             const [tokenIds, rarities, names, attackDamages] = data;
 
             const formatted = tokenIds.map((id, i) => ({
@@ -62,7 +65,7 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
             setNfts(formatted);
         } catch (err) {
             console.error('NFT veri çekme hatası:', err);
-            setError("Failed to load your NFTs.");
+            setError('Failed to load your NFTs.');
         }
     };
 
@@ -74,9 +77,9 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
             let receipt = null;
             while (!receipt) {
                 receipt = await provider.getTransactionReceipt(tx.hash);
-                if (!receipt) await new Promise(resolve => setTimeout(resolve, 1000));
+                if (!receipt) await new Promise((resolve) => setTimeout(resolve, 1000));
             }
-            const log = receipt.logs.find(log => {
+            const log = receipt.logs.find((log) => {
                 try {
                     return contract.interface.parseLog(log).name === 'NFTMinted';
                 } catch {
@@ -102,7 +105,7 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
             }
         } catch (err) {
             console.error('Mint hatası:', err);
-            setError("Failed to mint NFT.");
+            setError('Failed to mint NFT.');
         }
     };
 
@@ -110,11 +113,10 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
         setSelectedCard(nft.tokenId === selectedCard ? null : nft.tokenId);
     };
 
-    // 🛡️ FIGHT CONTRACT INTEGRATION
     const handleCreateFight = async () => {
         try {
             if (!selectedCard) {
-                setError("Please select a card before creating a fight!");
+                setError('Please select a card before creating a fight!');
                 return;
             }
 
@@ -122,10 +124,10 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
             let receipt = null;
             while (!receipt) {
                 receipt = await provider.getTransactionReceipt(tx.hash);
-                if (!receipt) await new Promise(resolve => setTimeout(resolve, 1000));
+                if (!receipt) await new Promise((resolve) => setTimeout(resolve, 1000));
             }
 
-            const log = receipt.logs.find(log => {
+            const log = receipt.logs.find((log) => {
                 try {
                     return contract.interface.parseLog(log).name === 'FightStarted';
                 } catch {
@@ -138,19 +140,18 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
                 const fightId = Number(parsed.args[0]);
                 setCreatedFightId(fightId);
                 await navigator.clipboard.writeText(fightId.toString());
-                setError("Fight ID has been copied to clipboard!");
+                setError('Fight ID has been copied to clipboard!');
             }
         } catch (err) {
-            console.error("Fight oluşturulamadı:", err);
-            setError("Failed to create fight.");
+            console.error('Fight oluşturulamadı:', err);
+            setError('Failed to create fight.');
         }
     };
 
-    //FIGHT CONTRACT INTEGRATION
     const handleJoinFight = async () => {
         try {
             if (!fightId || !selectedCard) {
-                setError("Please select a card and enter a fight ID!");
+                setError('Please select a card and enter a fight ID!');
                 return;
             }
 
@@ -158,7 +159,7 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
             let receipt = null;
             while (!receipt) {
                 receipt = await provider.getTransactionReceipt(tx.hash);
-                if (!receipt) await new Promise(resolve => setTimeout(resolve, 1000));
+                if (!receipt) await new Promise((resolve) => setTimeout(resolve, 1000));
             }
 
             await resolveFight(fightId);
@@ -166,22 +167,21 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
             setFightAction(null);
             setFightId('');
         } catch (err) {
-            console.error("Join fight hatası:", err);
-            setError("Failed to join the fight.");
+            console.error('Join fight hatası:', err);
+            setError('Failed to join the fight.');
         }
     };
 
-    // 🛡️ FIGHT CONTRACT INTEGRATION
     const resolveFight = async (fightId) => {
         try {
             const tx = await contract.resolveFight(fightId);
             let receipt = null;
             while (!receipt) {
                 receipt = await provider.getTransactionReceipt(tx.hash);
-                if (!receipt) await new Promise(resolve => setTimeout(resolve, 1000));
+                if (!receipt) await new Promise((resolve) => setTimeout(resolve, 1000));
             }
 
-            const log = receipt.logs.find(log => {
+            const log = receipt.logs.find((log) => {
                 try {
                     return contract.interface.parseLog(log).name === 'FightResolved';
                 } catch {
@@ -191,19 +191,35 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
 
             if (log) {
                 const parsed = contract.interface.parseLog(log);
-                const winner = parsed.args[1];
-                await loadNFTs(contract);
-                if (winner.toLowerCase() === userAddress.toLowerCase()) {
-                    setIsWinnerModalOpen(true);
-                } else {
-                    setIsLoserModalOpen(true);
-                }
-                setCreatedFightId(null);
+                const winner = parsed.args[1].toLowerCase();
 
+                const [tokenId1, tokenId2] = await contract.getFightStatus(fightId).then((res) => [res[0], res[1]]);
+                const [rarity1, name1, damage1] = await contract.getNFTAttributes(tokenId1);
+                const [rarity2, name2, damage2] = await contract.getNFTAttributes(tokenId2);
+
+                const playerCard = {
+                    tokenId: Number(tokenId1),
+                    rarity: rarity1,
+                    name: name1,
+                    attackDamage: Number(damage1)
+                };
+
+                const opponentCard = {
+                    tokenId: Number(tokenId2),
+                    rarity: rarity2,
+                    name: name2,
+                    attackDamage: Number(damage2)
+                };
+
+
+                setBattleResult({ playerCard, opponentCard, winner });
+                setIsBattleScreenOpen(true);
+                setCreatedFightId(null);
+                await loadNFTs(contract);
             }
         } catch (err) {
-            console.error("Fight çözümleme hatası:", err);
-            setError("Failed to resolve fight.");
+            console.error('Fight çözümleme hatası:', err);
+            setError('Failed to resolve fight.');
         }
     };
 
@@ -258,7 +274,6 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
                         setIsFightModalOpen(true);
                         setFightAction(null);
                     }}
-
                 >
                     FIGHT!
                 </Button>
@@ -293,8 +308,6 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
                             />
                         </Box>
                     ))}
-
-
             </Box>
 
             <NewCardModal
@@ -313,7 +326,7 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
                 onClose={() => {
                     setIsFightModalOpen(false);
                     setFightAction(null);
-                    setCreatedFightId(null);  // 🔧 bunu da ekle
+                    setCreatedFightId(null);
                 }}
                 fightAction={fightAction}
                 setFightAction={setFightAction}
@@ -328,6 +341,19 @@ const Dashboard = ({ provider, contractAddress, contractABI, userAddress }) => {
             <WinnerModal open={isWinnerModalOpen} onClose={() => setIsWinnerModalOpen(false)} />
             <LoserModal open={isLoserModalOpen} onClose={() => setIsLoserModalOpen(false)} />
             <ErrorSnackbar open={!!error} onClose={() => setError(null)} message={error} />
+
+            {isBattleScreenOpen && battleResult && (
+                <BattleScreen
+                    playerCard={battleResult.playerCard}
+                    opponentCard={battleResult.opponentCard}
+                    winner={battleResult.winner}
+                    userAddress={userAddress}
+                    onClose={() => {
+                        setIsBattleScreenOpen(false);
+                        setBattleResult(null);
+                    }}
+                />
+            )}
         </>
     );
 };
